@@ -16,14 +16,13 @@ FLVHeader *parse_header(FILE *file, int *offset)
     fseek(file, *offset, SEEK_SET);
     // 读取文件头
     FLVHeader *header = flv_header_new();
-    *offset += fread(header, 9, 1, file) * 9;
-
-    byte b[4];
-    fseek(file, 0x05, SEEK_SET);
-    fread(&b, 4, 1, file);
-
-    printf("%d\n", flv_header_length(header));
-    printf("%d\n", read_big(b, 4));
+    *offset += fread(header, 5, 1, file) * 5;
+    // 读取文件头大小
+    byte length[4];
+    // 跳转到文件头大小部分
+    fseek(file, *offset, SEEK_SET);
+    *offset += fread(length, 4, 1, file) * 4;
+    flv_header_set_length(header, (int)read_big(length, 4));
 
     // 判断文件格式
     if (strncmp(flv_header_get_type(header), "FLV", 3))
@@ -53,15 +52,30 @@ FLVTag *parse_tag(FILE *file, int *offset)
     // flv tag
     FLVTag *tag = flv_tag_new();
     // 获取tag基本信息
-    *offset += fread(tag, 15, 1, file) * 15;
+    byte bytes[4];
+    // prrvious
+    *offset += fread(bytes, 4, 1, file) * 4;
+    fseek(file, *offset, SEEK_SET);
+    flv_tag_set_previous_size(tag, (int)read_big(bytes, 4));
+    // type
+    *offset += fread(bytes, 1, 1, file) * 1;
+    fseek(file, *offset, SEEK_SET);
+    flv_tag_set_type(tag, bytes[0]);
+    // data size
+    *offset += fread(bytes, 3, 1, file) * 3;
+    fseek(file, *offset, SEEK_SET);
+    flv_tag_set_data_size(tag, read_big(bytes, 3));
+    // time
+    *offset += fread(bytes, 4, 1, file) * 4;
+    fseek(file, *offset, SEEK_SET);
+    int time = read_big(bytes, 3);
+    flv_tag_set_time_stamp(tag, (time & 0xffffff) | bytes[3]);
+    // stream id
+    *offset += fread(bytes, 3, 1, file) * 3;
+    fseek(file, *offset, SEEK_SET);
+    flv_tag_set_streams_id(tag, read_big(bytes, 3));
 
-    byte b[3];
-    fseek(file, 0x0e, SEEK_SET);
-    fread(&b, 3, 1, file);
-    printf("%d\n", flv_tag_get_data_size(tag));
-    printf("%d\n", read_big(b, 3));
     // 打印tag信息
-    printf("====FLVTag====\n");
     printf("tag类型: %d\n", flv_tag_get_type(tag));
     printf("上一个大小: %d\n", flv_tag_get_previous_size(tag));
     printf("当前tag大小: %d\n", flv_tag_get_data_size(tag));

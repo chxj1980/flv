@@ -10,9 +10,7 @@ long read_big(byte *bytes, int size)
   for (int i = 0; i < size; ++i)
   {
     result = (result << 8) | bytes[i];
-    printf("%d ", bytes[i]);
   }
-  printf("\n");
   return result;
 }
 

@@ -147,7 +147,7 @@ void flv_tag_set_type(FLVTag *tag, int type)
     {
         return;
     }
-    tag->type = (tag->type & 0x1c) | (type | 0xff);
+    tag->type = (tag->type & 0xe0) | (type & 0xff);
 }
 
 /**
