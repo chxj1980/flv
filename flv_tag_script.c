@@ -32,14 +32,14 @@ typedef struct _FLVTagScript
      * script data数据
      */
     void *data;
-}FLVTagScript;
+} FLVTagScript;
 
 /**
  * script tag
  */
 FLVTagScript *flv_tag_script_new()
 {
-    FLVTagScript *tag_script = (FLVTagScript*)malloc(sizeof(FLVTagScript));
+    FLVTagScript *tag_script = (FLVTagScript *)malloc(sizeof(FLVTagScript));
     memset(tag_script, 0, sizeof(FLVTagScript));
     return tag_script;
 }
@@ -49,7 +49,7 @@ FLVTagScript *flv_tag_script_new()
  */
 void flv_tag_script_free(FLVTagScript *script)
 {
-    if(script != NULL)
+    if (script != NULL)
     {
         free(script);
     }
@@ -60,42 +60,42 @@ void flv_tag_script_free(FLVTagScript *script)
  */
 void flv_tag_script_and_data_free(FLVTagScript *script)
 {
-    if(script != NULL)
+    if (script != NULL)
     {
-        if(script->data != NULL)
+        if (script->data != NULL)
         {
             switch (flv_tag_script_get_type(script))
             {
-                case SCRIPT_TYPE_NUMBER:
-                flv_tag_script_double_free((FLVTagScriptDouble*)(script->data));
+            case SCRIPT_TYPE_NUMBER:
+                flv_tag_script_double_free((FLVTagScriptDouble *)(script->data));
                 break;
-                case SCRIPT_TYPE_BOOLEAN:
+            case SCRIPT_TYPE_BOOLEAN:
                 break;
-                case SCRIPT_TYPE_STRING:
-                flv_tag_script_string_and_data_free((FLVTagScriptString*)(script->data));
+            case SCRIPT_TYPE_STRING:
+                flv_tag_script_string_and_data_free((FLVTagScriptString *)(script->data));
                 break;
-                case SCRIPT_TYPE_OBJECT:
+            case SCRIPT_TYPE_OBJECT:
                 break;
-                case SCRIPT_TYPE_MOVE_CLIP:
+            case SCRIPT_TYPE_MOVE_CLIP:
                 break;
-                case SCRIPT_TYPE_TYPE_NULL:
+            case SCRIPT_TYPE_TYPE_NULL:
                 break;
-                case SCRIPT_TYPE_UNDEFINED:
+            case SCRIPT_TYPE_UNDEFINED:
                 break;
-                case SCRIPT_TYPE_REFERENCE:
+            case SCRIPT_TYPE_REFERENCE:
                 break;
-                case SCRIPT_TYPE_ECMA_ARRAY:
-                flv_tag_script_ecma_and_data_free((FLVTagScriptEcma*)(script->data));
+            case SCRIPT_TYPE_ECMA_ARRAY:
+                flv_tag_script_ecma_and_data_free((FLVTagScriptEcma *)(script->data));
                 break;
-                case SCRIPT_TYPE_OBJECT_AND_MAKER:
+            case SCRIPT_TYPE_OBJECT_AND_MAKER:
                 break;
-                case SCRIPT_TYPE_SCRIPT_ARRAY:
+            case SCRIPT_TYPE_SCRIPT_ARRAY:
                 break;
-                case SCRIPT_TYPE_DATE:
+            case SCRIPT_TYPE_DATE:
                 break;
-                case SCRIPT_TYPE_LONG_STRING:
+            case SCRIPT_TYPE_LONG_STRING:
                 break;
-                default:
+            default:
                 break;
             }
         }
@@ -108,52 +108,75 @@ void flv_tag_script_and_data_free(FLVTagScript *script)
  */
 FLVTagScriptDataType flv_tag_script_get_type(FLVTagScript *script)
 {
-    if(script == NULL)
+    if (script == NULL)
     {
         return SCRIPT_TYPE_UNKNOW;
     }
     switch (script->type)
     {
-        case 0x00:
+    case 0x00:
         return SCRIPT_TYPE_NUMBER;
-        case 0x01:
+    case 0x01:
         return SCRIPT_TYPE_BOOLEAN;
-        case 0x02:
+    case 0x02:
         return SCRIPT_TYPE_STRING;
-        case 0x03:
+    case 0x03:
         return SCRIPT_TYPE_OBJECT;
-        case 0x04:
+    case 0x04:
         return SCRIPT_TYPE_MOVE_CLIP;
-        case 0x05:
+    case 0x05:
         return SCRIPT_TYPE_TYPE_NULL;
-        case 0x06:
+    case 0x06:
         return SCRIPT_TYPE_UNDEFINED;
-        case 0x07:
+    case 0x07:
         return SCRIPT_TYPE_REFERENCE;
-        case 0x08:
+    case 0x08:
         return SCRIPT_TYPE_ECMA_ARRAY;
-        case 0x09:
+    case 0x09:
         return SCRIPT_TYPE_OBJECT_AND_MAKER;
-        case 0x10:
+    case 0x10:
         return SCRIPT_TYPE_SCRIPT_ARRAY;
-        case 0x11:
+    case 0x11:
         return SCRIPT_TYPE_DATE;
-        case 0x12:
+    case 0x12:
         return SCRIPT_TYPE_LONG_STRING;
-        default:
+    default:
         return SCRIPT_TYPE_UNKNOW;
     }
 }
-
 
 /**
  * 设置script类型
  */
 void flv_tag_script_set_type(FLVTagScript *script, int type)
 {
-    if(script == NULL)
+    if (script == NULL)
     {
         return;
     }
     script->type = type & 0xff;
+}
+
+/**
+ * 获取数据
+ */
+void *flv_tag_script_get_data(FLVTagScript *script)
+{
+    if (script == NULL)
+    {
+        return NULL;
+    }
+    return script->data;
+}
+
+/**
+ * 设置数据
+ */
+void flv_tag_script_set_data(FLVTagScript *script, void *data)
+{
+    if (script == NULL)
+    {
+        return;
+    }
+    script->data = data;
 }

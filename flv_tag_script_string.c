@@ -18,14 +18,14 @@ typedef struct _FLVTagScriptString
      * 保存的值
      */
     char *data;
-}FLVTagScriptString;
+} FLVTagScriptString;
 
 /**
  * 创建string类型的tag
  */
 FLVTagScriptString *flv_tag_script_string_new()
 {
-    FLVTagScriptString *script_string = (FLVTagScriptString*)malloc(sizeof(FLVTagScriptString));
+    FLVTagScriptString *script_string = (FLVTagScriptString *)malloc(sizeof(FLVTagScriptString));
     memset(script_string, 0, sizeof(FLVTagScriptString));
     return script_string;
 }
@@ -35,7 +35,7 @@ FLVTagScriptString *flv_tag_script_string_new()
  */
 void flv_tag_script_string_free(FLVTagScriptString *script_string)
 {
-    if(script_string != NULL)
+    if (script_string != NULL)
     {
         free(script_string);
     }
@@ -46,9 +46,9 @@ void flv_tag_script_string_free(FLVTagScriptString *script_string)
  */
 void flv_tag_script_string_and_data_free(FLVTagScriptString *script_string)
 {
-    if(script_string != NULL)
+    if (script_string != NULL)
     {
-        if(script_string->data != NULL)
+        if (script_string->data != NULL)
         {
             free(script_string->data);
         }
@@ -61,7 +61,7 @@ void flv_tag_script_string_and_data_free(FLVTagScriptString *script_string)
  */
 int flv_tag_script_string_length(FLVTagScriptString *script_string)
 {
-    if(script_string == NULL)
+    if (script_string == NULL)
     {
         return -1;
     }
@@ -73,7 +73,7 @@ int flv_tag_script_string_length(FLVTagScriptString *script_string)
  */
 void flv_tag_script_set_string_length(FLVTagScriptString *script_string, int length)
 {
-    if(script_string == NULL)
+    if (script_string == NULL)
     {
         return;
     }
@@ -85,7 +85,7 @@ void flv_tag_script_set_string_length(FLVTagScriptString *script_string, int len
  */
 char *flv_tag_script_string_get_data(FLVTagScriptString *script_string)
 {
-    if(script_string == NULL)
+    if (script_string == NULL)
     {
         return NULL;
     }
@@ -97,19 +97,19 @@ char *flv_tag_script_string_get_data(FLVTagScriptString *script_string)
  */
 void flv_tag_script_string_set_data(FLVTagScriptString *script_string, char *data)
 {
-    if(script_string == NULL || data == NULL || script_string->length <= 0)
+    if (script_string == NULL || data == NULL || script_string->length <= 0)
     {
         return;
     }
     char *value = NULL;
     int length = script_string->length;
     bool has_zero = data[length - 1] != '\0';
-    if(has_zero)
+    if (has_zero)
     {
         length++;
-        value[length - 1] = '\0';
     }
-    value = (char*)malloc(sizeof(char) * length);
+    value = (char *)malloc(sizeof(char) * length);
     strncpy(value, data, length - (has_zero ? 0 : 1));
+    value[length - 1] = '\0';
     script_string->data = value;
 }

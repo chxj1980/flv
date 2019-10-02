@@ -5,6 +5,11 @@
 #include "types.h"
 #include "flv_header.h"
 #include "flv_tag.h"
+#include "flv_tag_script.h"
+#include "flv_tag_script_string.h"
+#include "flv_tag_script_double.h"
+#include "flv_tag_script_ecma.h"
+#include "flv_tag_script_object.h"
 #include "utils.h"
 
 /**
@@ -42,6 +47,164 @@ FLVHeader *parse_header(FILE *file, int *offset)
     return header;
 }
 
+void *parse_tag_script_type(FILE *file, int *offset, FLVTagScriptDataType type);
+void *parse_tag_script_number(FILE *file, int *offset);
+void *parse_tag_script_string(FILE *file, int *offset);
+void *parse_tag_script_long_string(FILE *file, int *offset);
+void *parse_tag_script_ecma(FILE *file, int *offset);
+void *parse_tag_script_object(FILE *file, int *offset);
+
+/**
+ * 解析数字
+ */
+void *parse_tag_script_number(FILE *file, int *offset)
+{
+    // 跳转到tag位置
+    fseek(file, *offset, SEEK_SET);
+    FLVTagScriptDouble *script_double = flv_tag_script_double_new();
+    byte bytes[8];
+    *offset += fread(bytes, 8, 1, file) * 8;
+    long *longs = (long *)malloc(sizeof(long));
+    for (int i = 0; i < 8; ++i)
+    {
+        *longs = (*longs << 8) | bytes[i];
+    }
+    flv_tag_script_double_set_data(script_double, longs);
+
+    printf("tag结束位置: %d\n", *offset);
+    return script_double;
+}
+
+/**
+ * 解析字符串
+ */
+void *parse_tag_script_string(FILE *file, int *offset)
+{
+    // 跳转到tag位置
+    fseek(file, *offset, SEEK_SET);
+    FLVTagScriptString *script_string = flv_tag_script_string_new();
+    byte bytes[2];
+    *offset += fread(bytes, 2, 1, file) * 2;
+    flv_tag_script_set_string_length(script_string, read_big(bytes, 2));
+    char *strs = (char *)malloc(sizeof(char) * flv_tag_script_string_length(script_string));
+    fseek(file, *offset, SEEK_SET);
+    *offset += fread(strs, flv_tag_script_string_length(script_string), 1, file) * flv_tag_script_string_length(script_string);
+    flv_tag_script_string_set_data(script_string, strs);
+    printf("tag结束位置: %d\n", *offset);
+    return script_string;
+}
+
+/**
+ * 解析长字符串
+ */
+void *parse_tag_script_long_string(FILE *file, int *offset)
+{
+    // 跳转到tag位置
+    fseek(file, *offset, SEEK_SET);
+    FLVTagScriptString *script_string = flv_tag_script_string_new();
+    byte bytes[4];
+    *offset += fread(bytes, 4, 1, file) * 4;
+    flv_tag_script_set_string_length(script_string, read_big(bytes, 4));
+    char *strs = (char *)malloc(sizeof(char) * flv_tag_script_string_length(script_string));
+    fseek(file, *offset, SEEK_SET);
+    *offset += fread(strs, flv_tag_script_string_length(script_string), 1, file) * flv_tag_script_string_length(script_string);
+    flv_tag_script_string_set_data(script_string, strs);
+    printf("tag结束位置: %d\n", *offset);
+    return script_string;
+}
+
+/**
+ * 解析ecma数组
+ */
+void *parse_tag_script_ecma(FILE *file, int *offset)
+{
+    // 跳转到tag位置
+    fseek(file, *offset, SEEK_SET);
+    FLVTagScriptEcma *script_ecma = flv_tag_script_ecma_new();
+    int size = 0;
+    byte bytes[4];
+    *offset += fread(bytes, 4, 1, file) * 4;
+    size = read_big(bytes, 4);
+
+    for (int i = 0; i < size; ++i)
+    {
+        parse_tag_script_object(file, offset);
+        //flv_tag_script_ecma_put_object(script_ecma, parse_tag_script_object(file, offset));
+    }
+
+    printf("tag结束位置: %d\n", *offset);
+    return script_ecma;
+}
+
+/**
+ * 解析object
+ */
+void *parse_tag_script_object(FILE *file, int *offset)
+{
+    FLVTagScriptObject *script_object = flv_tag_script_object_new();
+    flv_tag_script_object_set_key(script_object, parse_tag_script_string(file, offset));
+    printf("%s : ", flv_tag_script_string_get_data(flv_tag_script_object_get_key(script_object)));
+    fseek(file, *offset, SEEK_SET);
+
+    FLVTagScript *tag_script = flv_tag_script_new();
+    *offset += fread(tag_script, 1, 1, file) * 1;
+    flv_tag_script_set_data(tag_script, parse_tag_script_type(file, offset, flv_tag_script_get_type(tag_script)));
+
+    switch (flv_tag_script_get_type(tag_script))
+    {
+    case SCRIPT_TYPE_NUMBER:
+        printf("%f\n", flv_tag_script_double_get_data((FLVTagScriptDouble *)flv_tag_script_get_data(tag_script)));
+        break;
+    case SCRIPT_TYPE_STRING:
+        printf("%s\n", flv_tag_script_string_get_data((FLVTagScriptString *)flv_tag_script_get_data(tag_script)));
+        break;
+    }
+
+    flv_tag_script_object_set_type(script_object, flv_tag_script_get_type(tag_script));
+    flv_tag_script_object_set_value(script_object, tag_script);
+    printf("tag结束位置: %d\n", *offset);
+    return script_object;
+}
+
+/**
+ * 解析数据类型
+ */
+void *parse_tag_script_type(FILE *file, int *offset, FLVTagScriptDataType type)
+{
+    switch (type)
+    {
+    case SCRIPT_TYPE_NUMBER:
+        return parse_tag_script_number(file, offset);
+    case SCRIPT_TYPE_STRING:
+        return parse_tag_script_string(file, offset);
+    case SCRIPT_TYPE_LONG_STRING:
+        return parse_tag_script_long_string(file, offset);
+    case SCRIPT_TYPE_ECMA_ARRAY:
+        return parse_tag_script_ecma(file, offset);
+    case SCRIPT_TYPE_OBJECT:
+        return parse_tag_script_object(file, offset);
+    default:
+        return NULL;
+    }
+}
+
+/**
+ * 解析script tag
+ */
+FLVTagScript **parse_tag_script(FILE *file, int *offset, int size)
+{
+    int start = *offset;
+    while (*offset - start < size)
+    {
+        // 跳转到tag位置
+        fseek(file, *offset, SEEK_SET);
+        FLVTagScript *tag_script = flv_tag_script_new();
+        *offset += fread(tag_script, 1, 1, file) * 1;
+        flv_tag_script_set_data(tag_script, parse_tag_script_type(file, offset, flv_tag_script_get_type(tag_script)));
+    }
+    return NULL;
+}
+
 /**
  * 解析tag
  */
@@ -76,12 +239,25 @@ FLVTag *parse_tag(FILE *file, int *offset)
     flv_tag_set_streams_id(tag, read_big(bytes, 3));
 
     // 打印tag信息
+    printf("====FLVTag====\n");
     printf("tag类型: %d\n", flv_tag_get_type(tag));
     printf("上一个大小: %d\n", flv_tag_get_previous_size(tag));
     printf("当前tag大小: %d\n", flv_tag_get_data_size(tag));
     printf("时间戳: %d\n", flv_tag_get_time_stamp(tag));
     printf("====FLVTag END====\n\n");
 
+    switch (flv_tag_get_type(tag))
+    {
+    case TAG_TYPE_SCRIPT:
+        flv_tag_set_data(tag, parse_tag_script(file, offset, flv_tag_get_data_size(tag)));
+        break;
+    case TAG_TYPE_AUDIO:
+        break;
+    case TAG_TYPE_VIDEO:
+        break;
+    default:
+        break;
+    }
     return tag;
 }
 

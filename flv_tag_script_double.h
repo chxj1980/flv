@@ -19,11 +19,11 @@ void flv_tag_script_double_free(FLVTagScriptDouble *script_double);
 /**
  * 获取值
  */
-double flv_tag_script_get_data(FLVTagScriptDouble *script_double);
+double flv_tag_script_double_get_data(FLVTagScriptDouble *script_double);
 
 /**
  * 设置data值
  */
-void flv_tag_script_set_data(FLVTagScriptDouble *script_double, void *data);
+void flv_tag_script_double_set_data(FLVTagScriptDouble *script_double, void *data);
 
 #endif // !FLV_TAG_SCRIPT_DOUBLE_HEADER

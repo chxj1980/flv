@@ -8,14 +8,14 @@ typedef struct _FLVTagScriptObject
 {
     FLVTagScriptString *key;
     FLVTagScript *value;
-}FLVTagScriptObject;
+} FLVTagScriptObject;
 
 /**
  * 创建object
  */
 FLVTagScriptObject *flv_tag_script_object_new()
 {
-    FLVTagScriptObject *script_object = (FLVTagScriptObject*)malloc(sizeof(FLVTagScriptObject));
+    FLVTagScriptObject *script_object = (FLVTagScriptObject *)malloc(sizeof(FLVTagScriptObject));
     memset(script_object, 0, sizeof(FLVTagScriptObject));
     return script_object;
 }
@@ -25,7 +25,7 @@ FLVTagScriptObject *flv_tag_script_object_new()
  */
 void flv_tag_script_object_free(FLVTagScriptObject *script_object)
 {
-    if(script_object != NULL)
+    if (script_object != NULL)
     {
         free(script_object);
     }
@@ -36,13 +36,13 @@ void flv_tag_script_object_free(FLVTagScriptObject *script_object)
  */
 void flv_tag_script_object_and_data_free(FLVTagScriptObject *script_object)
 {
-    if(script_object != NULL)
+    if (script_object != NULL)
     {
-        if(script_object->key != NULL)
+        if (script_object->key != NULL)
         {
             flv_tag_script_string_and_data_free(script_object->key);
         }
-        if(script_object->value != NULL)
+        if (script_object->value != NULL)
         {
             flv_tag_script_and_data_free(script_object->value);
         }
@@ -71,7 +71,7 @@ void flv_tag_script_object_set_type(FLVTagScriptObject *script_object, int type)
  */
 FLVTagScriptString *flv_tag_script_object_get_key(FLVTagScriptObject *script_object)
 {
-    if(script_object == NULL)
+    if (script_object == NULL)
     {
         return NULL;
     }
@@ -83,7 +83,7 @@ FLVTagScriptString *flv_tag_script_object_get_key(FLVTagScriptObject *script_obj
  */
 void flv_tag_script_object_set_key(FLVTagScriptObject *script_object, FLVTagScriptString *key)
 {
-    if(script_object == NULL)
+    if (script_object == NULL)
     {
         return;
     }
@@ -95,7 +95,7 @@ void flv_tag_script_object_set_key(FLVTagScriptObject *script_object, FLVTagScri
  */
 FLVTagScript *flv_tag_script_object_get_value(FLVTagScriptObject *script_object)
 {
-    if(script_object == NULL)
+    if (script_object == NULL)
     {
         return NULL;
     }
@@ -107,7 +107,7 @@ FLVTagScript *flv_tag_script_object_get_value(FLVTagScriptObject *script_object)
  */
 void flv_tag_script_object_set_value(FLVTagScriptObject *script_object, FLVTagScript *value)
 {
-    if(script_object == NULL)
+    if (script_object == NULL)
     {
         return;
     }
