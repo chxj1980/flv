@@ -10,6 +10,7 @@
 #include "flv_tag_script_double.h"
 #include "flv_tag_script_ecma.h"
 #include "flv_tag_script_object.h"
+#include "flv_tag_script_bool.h"
 #include "utils.h"
 
 /**
@@ -53,6 +54,7 @@ void *parse_tag_script_string(FILE *file, int *offset);
 void *parse_tag_script_long_string(FILE *file, int *offset);
 void *parse_tag_script_ecma(FILE *file, int *offset);
 void *parse_tag_script_object(FILE *file, int *offset);
+void *parse_tag_script_bool(FILE *file, int *offset);
 
 /**
  * 解析数字
@@ -71,7 +73,6 @@ void *parse_tag_script_number(FILE *file, int *offset)
     }
     flv_tag_script_double_set_data(script_double, longs);
 
-    printf("tag结束位置: %d\n", *offset);
     return script_double;
 }
 
@@ -90,7 +91,6 @@ void *parse_tag_script_string(FILE *file, int *offset)
     fseek(file, *offset, SEEK_SET);
     *offset += fread(strs, flv_tag_script_string_length(script_string), 1, file) * flv_tag_script_string_length(script_string);
     flv_tag_script_string_set_data(script_string, strs);
-    printf("tag结束位置: %d\n", *offset);
     return script_string;
 }
 
@@ -109,7 +109,6 @@ void *parse_tag_script_long_string(FILE *file, int *offset)
     fseek(file, *offset, SEEK_SET);
     *offset += fread(strs, flv_tag_script_string_length(script_string), 1, file) * flv_tag_script_string_length(script_string);
     flv_tag_script_string_set_data(script_string, strs);
-    printf("tag结束位置: %d\n", *offset);
     return script_string;
 }
 
@@ -132,7 +131,6 @@ void *parse_tag_script_ecma(FILE *file, int *offset)
         //flv_tag_script_ecma_put_object(script_ecma, parse_tag_script_object(file, offset));
     }
 
-    printf("tag结束位置: %d\n", *offset);
     return script_ecma;
 }
 
@@ -158,12 +156,26 @@ void *parse_tag_script_object(FILE *file, int *offset)
     case SCRIPT_TYPE_STRING:
         printf("%s\n", flv_tag_script_string_get_data((FLVTagScriptString *)flv_tag_script_get_data(tag_script)));
         break;
+    case SCRIPT_TYPE_BOOLEAN:
+        printf("%d\n", flv_tag_script_bool_get_data((FLVTagScriptBool *)flv_tag_script_get_data(tag_script)));
+        break;
     }
 
     flv_tag_script_object_set_type(script_object, flv_tag_script_get_type(tag_script));
     flv_tag_script_object_set_value(script_object, tag_script);
-    printf("tag结束位置: %d\n", *offset);
     return script_object;
+}
+
+void *parse_tag_script_bool(FILE *file, int *offset)
+{
+    // 跳转到tag位置
+    fseek(file, *offset, SEEK_SET);
+    FLVTagScriptBool *script_bool = flv_tag_script_bool_new();
+    byte boolean[1];
+    *offset += fread(boolean, 1, 1, file) * 1;
+    flv_tag_script_bool_set_data(script_bool, boolean[0] == 1);
+
+    return script_bool;
 }
 
 /**
@@ -183,6 +195,8 @@ void *parse_tag_script_type(FILE *file, int *offset, FLVTagScriptDataType type)
         return parse_tag_script_ecma(file, offset);
     case SCRIPT_TYPE_OBJECT:
         return parse_tag_script_object(file, offset);
+    case SCRIPT_TYPE_BOOLEAN:
+        return parse_tag_script_bool(file, offset);
     default:
         return NULL;
     }
